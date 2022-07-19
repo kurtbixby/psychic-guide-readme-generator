@@ -88,7 +88,7 @@ async function main() {
 }
 
 function createLicenseBadgeUrl(licenseDetails) {
-    console.log(licenseDetails);
+    // URL Scheme for shields.io
     // space -> _
     // - -> --
     // https://img.shields.io/badge/License-${license}-${color}.svg
@@ -115,6 +115,8 @@ function createLicenseBadgeUrl(licenseDetails) {
     return `https://img.shields.io/badge/License-${license}-${color}.svg`;
 }
 
+// Some licenses have year and name placeholders
+// This fills those in
 function formatLicenseText(licenseText, github) {
     let formattedText = licenseText.replace('[year]', (new Date()).getFullYear()).replace('[fullname]', github);
     return formattedText;
