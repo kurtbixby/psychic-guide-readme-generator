@@ -4,8 +4,7 @@
 
 ## Description
 
-A command line-based README generator that automatically handles some of the trickier aspects of license messaging.  
-A video demonstration of this application can be found on [YouTube](https://youtu.be/ZAbc8G_GdEs).
+A command line-based README generator that automatically handles some of the trickier aspects of license messaging. A video demonstration of this application can be found on [YouTube](https://youtu.be/ZAbc8G_GdEs).
 
 ## Table of Contents
 
