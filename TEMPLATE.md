@@ -12,8 +12,8 @@ ${description}
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [Tests](#tests)
-- [License](#license)
 - [Questions](#questions)
+- [License](#license)
 
 ## Installation
 
@@ -31,11 +31,11 @@ ${contributing}
 
 ${tests}
 
-## License
-
-${licenseText}
-
 ## Questions
 
 Check me out on __[GitHub](https://github.com/${github})__  
 Send me an email at __[${email}](mailto:${email})__
+
+## License
+
+${licenseText}

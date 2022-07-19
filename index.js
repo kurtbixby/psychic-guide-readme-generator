@@ -1,14 +1,11 @@
 import inquirer from 'inquirer';
 import fs from 'fs/promises';
-import fetch from 'node-fetch';
 
 const INPUT_FILE = './TEMPLATE.md'
-const OUTPUT_FILE = './output/README.md';
-const LICENSES_URL = 'https://api.github.com/licenses';
+const OUTPUT_DIR = './output';
+const OUTPUT_FILENAME = 'README.md';
 const LICENSE_MANIFEST = './licenses/LicenseManifest.json';
 const LICENSE_DIR = './licenses/';
-
-let licenses;
 
 const questions = [{
         type: 'input',
@@ -59,22 +56,20 @@ const questions = [{
 ];
 
 async function main() {
-    
-    const licenses = await fetch(LICENSES_URL).then(response => response.json());
-    // console.log(licenses);
+    // Load licenses from a file and put the names into the question prompt
+    const licenses = JSON.parse(await fs.readFile(LICENSE_MANIFEST, 'utf8'));
     const shortLicenses = [];
     licenses.forEach(license => shortLicenses.push(license.name));
-    // console.log(shortLicenses);
     questions[4].choices = shortLicenses;
 
+    // Get input then determine which license object was selected
     const responses = await inquirer.prompt(questions);
-    let licenseObj = licenses[shortLicenses.indexOf(responses.license)];
+    let license = licenses[shortLicenses.indexOf(responses.license)];
 
-    let licenseDetails = await fetch(licenseObj.url).then(response => response.json());
+    // Read the license text file
+    let rawLicenseText = await fs.readFile(LICENSE_DIR+`${license.fileName}`, 'utf8');
 
-    let licenseBadgeUrl = createLicenseBadgeUrl(licenseDetails);
-
-    let licenseText = formatLicenseText(licenseDetails.body, responses.github);
+    let licenseText = formatLicenseText(rawLicenseText, responses.github);
     let title = responses.name;
     let description = responses.description;
     let installation = responses.install;
@@ -83,16 +78,19 @@ async function main() {
     let tests = responses.test;
     let github = responses.github;
     let email = responses.email;
+    let licenseBadgeUrl = createLicenseBadgeUrl(license);
 
-    const template = await fs.readFile(INPUT_FILE);
+    // Read the template file in, format it, then write it out
+    const template = await fs.readFile(INPUT_FILE, 'utf8');
     const filledTemplate = eval("`"+template+"`");
 
-    fs.writeFile(OUTPUT_FILE, filledTemplate);
+    writeReadmeToFile(OUTPUT_DIR, OUTPUT_FILENAME, filledTemplate);
 }
 
 function createLicenseBadgeUrl(licenseDetails) {
-    // _ -> space
-    // -- -> -
+    console.log(licenseDetails);
+    // space -> _
+    // - -> --
     // https://img.shields.io/badge/License-${license}-${color}.svg
     // A handful of explicitly supported licenses
     const licenseMap = {
@@ -111,7 +109,7 @@ function createLicenseBadgeUrl(licenseDetails) {
         'unlicense': 'Unlicense'
     };
 
-    const license = licenseMap[licenseDetails.key] ? licenseMap[licenseDetails.key] : licenseDetails.spdx_id;
+    const license = licenseMap[licenseDetails.key] ? licenseMap[licenseDetails.key] : licenseDetails.fileName.replace('-', '--');
     const color = 'blue';
 
     return `https://img.shields.io/badge/License-${license}-${color}.svg`;
@@ -120,6 +118,17 @@ function createLicenseBadgeUrl(licenseDetails) {
 function formatLicenseText(licenseText, github) {
     let formattedText = licenseText.replace('[year]', (new Date()).getFullYear()).replace('[fullname]', github);
     return formattedText;
+}
+
+async function writeReadmeToFile(outputDir, outputFile, readmeText) {
+    try {
+        // Try to write to a file
+        await fs.writeFile(`${outputDir}/${outputFile}`, readmeText);
+    } catch {
+        // If unable, make a directory then write to a file
+        await fs.mkdir(outputDir);
+        await fs.writeFile(`${outputDir}/${outputFile}`, readmeText);
+    }
 }
 
 main();
